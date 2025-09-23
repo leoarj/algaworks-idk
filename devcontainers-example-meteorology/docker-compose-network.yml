@@ -1,2 +1,3 @@
 networks:
-  alga-net:
+  devnet:
+    driver: bridge
