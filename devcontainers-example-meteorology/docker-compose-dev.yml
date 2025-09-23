@@ -1,5 +1,6 @@
 include:
   - docker-compose-network.yml
+  - docker-compose-volume.yml
 
 services:
   postgres:
@@ -26,7 +27,7 @@ services:
     env_file:
       - .env.dev
     networks:
-      - alga-net
+      - devnet
     depends_on:
       postgres:
         condition: service_healthy
@@ -42,8 +43,3 @@ services:
         limits:
           cpus: '1'
           memory: 1G
-
-
-volumes:
-  postgres-data:
-  pgadmin4-data:

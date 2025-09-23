@@ -1,5 +1,6 @@
 include:
   - docker-compose-network.yml
+  - docker-compose-volume.yml
 
 services:
   postgres:
@@ -17,7 +18,7 @@ services:
       - type: tmpfs
         target: /dev/shm
     networks:
-      - alga-net
+      - devnet
     restart: on-failure
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}", "-h", "localhost"]
@@ -45,7 +46,7 @@ services:
       # Opcional: pré-configuração para registrar automaticamente o servidor PostgreSQL no PgAdmin
       - ./docker/pgadmin/servers.json:/pgadmin4/servers.json
     networks:
-      - alga-net
+      - devnet
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,7 +56,3 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-
-volumes:
-  postgres-data:
-  pgadmin4-data:
