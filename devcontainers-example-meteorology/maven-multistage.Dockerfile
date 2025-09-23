@@ -33,7 +33,7 @@ ENV JAR_NAME=algaworks-idk-devcontainers-examples-meteorology-0.0.1-SNAPSHOT.jar
     SERVER_PORT=8082 \
     SPRING_PROFILES_ACTIVE=$ENV \
     DOCKERIZE_VERSION=v0.9.3 \
-    TZ=America/Sao_Paulo
+    TZ=America/Cuiaba
 
 # Comandos para OS Alpine
 RUN addgroup -S spring && adduser -S -G spring spring && \
