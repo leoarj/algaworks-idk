@@ -1,0 +1,34 @@
+include:
+  - ../docker-compose-network.yml
+  - ../docker-compose-volume.yml
+
+services:
+
+  dev:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu
+    container_name: meteorology_api_devcontainer
+    volumes:
+      - ..:/workspaces:cached
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    command: sleep infinity
+    env_file:
+      - .env
+    networks:
+      - devnet
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  postgres:
+    extends:
+      file: ../docker-compose-tools.yml
+      service: postgres
+    container_name: postgres_devcontainer
+
+  postgres-db-pgadmin4:
+    extends:
+      file: ../docker-compose-tools.yml
+      service: postgres-db-pgadmin4
+    container_name: pgadmin_devcontainer
