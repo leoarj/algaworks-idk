@@ -1,0 +1,89 @@
+{
+	"info": {
+		"_postman_id": "63c191e5-bed1-466f-8562-fd9ec11e7339",
+		"name": "Meteorology",
+		"description": "Collection de API simples para registro de temperatura com data/hora, latitude e longitude. O propósito principal é utilizá-la em conteinerização e uso em ambiente de desenvolvimento DevContainer.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30781350"
+	},
+	"item": [
+		{
+			"name": "Temperatures",
+			"item": [
+				{
+					"name": "Listar",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/temperatures",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"temperatures"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Adicionar",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"celsiusValue\": 32.5,\n    \"latitude\": -15.24,\n    \"longitude\": -55.16\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/temperatures",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"temperatures"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": ""
+		}
+	]
+}
