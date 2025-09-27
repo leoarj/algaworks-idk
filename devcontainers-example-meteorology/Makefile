@@ -1,6 +1,7 @@
 # Makefile para agrupar e facilitar a chamada de comandos de gerenciamento dos containers via Docker Compose
 
 # Arquivos Compose
+TOOLS_COMPOSE_FILE = docker-compose-tools.yml
 DEV_COMPOSE_FILE = docker-compose-dev.yml
 PROD_COMPOSE_FILE = docker-compose.yml
 
@@ -10,6 +11,25 @@ PROD_ENV_FILE ?= .env
 
 # Alvo padrão
 .DEFAULT_GOAL := help
+
+## ========================
+## Ambiente de Desenvolvimento - Tools (Serviços auxiliares)
+## ========================
+
+up-dev-tools:
+	docker compose --env-file $(DEV_ENV_FILE) -f $(TOOLS_COMPOSE_FILE) up
+
+down-dev-tools:
+	docker compose --env-file $(DEV_ENV_FILE) -f $(TOOLS_COMPOSE_FILE) down
+
+logs-dev-tools:
+	docker compose --env-file $(DEV_ENV_FILE) -f $(TOOLS_COMPOSE_FILE) logs -f
+
+ps-dev-tools:
+	docker compose --env-file $(DEV_ENV_FILE) -f $(TOOLS_COMPOSE_FILE) ps
+
+reset-dev-tools:
+	docker compose --env-file $(DEV_ENV_FILE) -f $(TOOLS_COMPOSE_FILE) down -v --remove-orphans
 
 ## ========================
 ## Ambiente de Desenvolvimento
@@ -54,6 +74,13 @@ ps-prod:
 help:
 	@echo ""
 	@echo "Comandos disponíveis:"
+	@echo "  Desenvolvimento (Tools - Dependências):"
+	@echo "    make up-dev-tools      -> Sobe containers de desenvolvimento (Apenas serviços auxiliares)"
+	@echo "    make down-dev-tools    -> Para containers de desenvolvimento (Apenas serviços auxiliares)"
+	@echo "    make logs-dev-tools    -> Segue os logs de desenvolvimento (Apenas serviços auxiliares)"
+	@echo "    make ps-dev-tools      -> Lista containers de desenvolvimento (Apenas serviços auxiliares)"
+	@echo "    make reset-dev-tools   -> Derruba containers, remove volumes e sobe novamente (Apenas serviços auxiliares)"
+	@echo ""
 	@echo "  Desenvolvimento:"
 	@echo "    make up-dev      -> Sobe containers de desenvolvimento"
 	@echo "    make down-dev    -> Para containers de desenvolvimento"
