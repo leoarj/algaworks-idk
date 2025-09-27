@@ -63,7 +63,7 @@ Mais informações podem ser encontradas em https://containers.dev/.
 	```
 - Abra o projeto no VS Code:
     ```console
-	code devcontainers-example-meteorology
+	code algaworks-idk/devcontainers-example-meteorology
 	```
 
 ## Como executar
