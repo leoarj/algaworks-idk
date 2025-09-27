@@ -59,7 +59,7 @@ Mais informações podem ser encontradas em https://containers.dev/.
 
 - Realize o clone do repositório:
     ```console
-	git clone
+	git clone https://github.com/leoarj/algaworks-idk.git
 	```
 - Abra o projeto no VS Code:
     ```console
@@ -118,7 +118,7 @@ Após os passos anteriores, abrir um novo terminal (***workspaces***) que estar�
 
 ## Testando a aplicação via ***Postman***
 
-Está incluso no projeto a pasta `.postman` com a *collection* necessária para testar os endpoints da API.
+Está incluso no projeto a pasta `.postman` a *collection* necessária para testar os endpoints da API.
 
 - Importando o arquivo na extensão do Postman dentro do VS Code:
 	- Na barra de pesquisas do VS Code digitar `>Postman: Import`.
