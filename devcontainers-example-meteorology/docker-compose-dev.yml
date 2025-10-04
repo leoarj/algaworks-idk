@@ -19,7 +19,6 @@ services:
       dockerfile: maven-multistage.Dockerfile
       args:
         - ENV=dev
-        - MAVEN_VERSION=3.9.11
     container_name: meteorology_api
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"

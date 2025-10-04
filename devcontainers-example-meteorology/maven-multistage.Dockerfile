@@ -1,61 +1,90 @@
-# Build context - Utiliza a imagem do maven com mesma versão utilizada no projeto
-
-# Para facilitar a definição da versão do Maven utilizada para build.
-# Passar no docker-compose um valor diferente para o argumento caso mudar no projeto.
-# Utilizando a imagem base do eclipse temurim com Java 21
-ARG MAVEN_VERSION=3.9.11
-
-FROM maven:${MAVEN_VERSION}-eclipse-temurin-21-alpine AS build
+# STAGE BUILD
+# Use a imagem Eclipse Temurin JDK 21 como imagem base para a etapa de compilação
+FROM eclipse-temurin:21-jdk-ubi10-minimal AS build
 
 # Define o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copia o pom.xml primeiro e baixa dependências em cache
-COPY pom.xml .
+# Copia wrapper do Maven e pom.xml
+COPY mvnw pom.xml ./
+COPY .mvn/ ./.mvn
 
-RUN mvn dependency:resolve dependency:resolve-plugins -DincludeScope=runtime -B
+# Baixa dependências em cache
+RUN ./mvnw dependency:resolve dependency:resolve-plugins -DincludeScope=runtime -B
 
-# Copia o restante do código
-COPY src ./src
+# Copia o código-fonte
+COPY src/ ./src
 
-# Compila e empacota (gera o JAR na pasta target)
-RUN mvn clean package -DskipTests
+# Compila e empacota (gera o JAR em /target)
+RUN ./mvnw clean package -DskipTests
 
 ## STAGE RUN
 # Use a imagem Eclipse Temurin JRE 21 como imagem base para a etapa de execução
-FROM eclipse-temurin:21-alpine
+FROM eclipse-temurin:21-jre-ubi10-minimal
 
 # Define um argumento de build para o perfil de ambiente
-ARG ENV=prod
+# Define UID E GID para usuário e grupo não-root (1001 - primeiro usuário após o root)
+# Define nome do usuáro e grupo não-root
+ARG ENV=prod \
+    APP_UID=1001 \
+    APP_GID=1001 \
+    APP_USER=appuser \
+    APP_GROUP=appgroup
 
 # Define variáveis de ambiente para o nome do arquivo JAR, porta do servidor e perfil do Spring
 ENV JAR_NAME=algaworks-idk-devcontainers-examples-meteorology-0.0.1-SNAPSHOT.jar \
     SERVER_PORT=8082 \
     SPRING_PROFILES_ACTIVE=$ENV \
-    DOCKERIZE_VERSION=v0.9.3 \
+    DOCKERIZE_VERSION=v0.9.6 \
     TZ=America/Cuiaba
 
 # Comandos para OS Alpine
-RUN addgroup -S spring && adduser -S -G spring spring && \
-    apk add --no-cache tzdata curl && \
+# RUN addgroup -S spring && adduser -S -G spring spring && \
+#     apk add --no-cache tzdata curl && \
+#     curl -L https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+#         | tar -xz -C /usr/local/bin && \
+#     cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+#     apk del curl
+
+# Comandos para Red Hat Universal Base Image (Utiliza microdnf)
+#
+# curl já vem instalado no ambiente (não pode ser removido no final porque alguns outros pacotes (rpm) o utilizam).
+# shadow-utils: Utilitário para gerenciamento de usuários e grupos (groupadd, useradd...).
+#
+# Passos da execução:
+# - Atualiza lista de pacotes e realiza instalação de tzdata, shadow-utils e tar
+# - Adiciona grupo não-root
+# - Adiciona usuário não-rot
+#   - Associa ao grupo não-root
+#   - Define o diretório home como /opt/app (diretório da aplicação)
+#   - Define o shell como sem login
+# - Baixa Dockerize via curl e extrai
+# - Copia informações de TimeZone
+# - Remove pacotes desnecessários ao final
+# - Realiza limpeza do gerenciador de pacotes microdnf
+RUN microdnf update -y && \
+    microdnf install -y \
+    tzdata shadow-utils tar && \
+    groupadd -g ${APP_GID} ${APP_GROUP} && \
+    useradd -u ${APP_UID} -r -g ${APP_GROUP} -d /opt/app -s /sbin/nologin -c "App User" ${APP_USER} && \
     curl -L https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-        | tar -xz -C /usr/local/bin && \
-    cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-    apk del curl
+         | tar -xz -C /usr/local/bin && \
+     cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+     microdnf remove -y shadow-utils tar  && \
+    microdnf clean all
 
 # Define o diretório de trabalho dentro do container
 WORKDIR /app
 
 # Copia o arquivo JAR gerado na etapa de build para a etapa de execução
-# Maven gera artefatos em target
-COPY --from=build /app/target/$JAR_NAME .
+# Maven gera artefatos em /target
+COPY --from=build --chown=${APP_USER}:${APP_GROUP} /app/target/$JAR_NAME .
 
-# Copia o script de entrypoint
-COPY --chown=spring:spring docker-entrypoint.sh ./
+# Copia o script de entrypoint e aplica permissão de execução
+COPY --chown=${APP_USER}:${APP_GROUP} --chmod=755 docker-entrypoint.sh ./
 
-RUN chmod +x docker-entrypoint.sh
-
-USER spring
+# Troca para usuário non-root
+USER ${APP_USER}:${APP_GROUP}
 
 # Adiciona um healthcheck para verificar se a aplicação está em execução
 HEALTHCHECK --interval=15s --timeout=60s --start-period=10s --retries=3 \
